@@ -100,7 +100,7 @@ def get_episode_links(url: str) -> list[str]:
     return links
 
 def download_episode(links: list[str], path: str, session: requests.Session = None,
-                     thread: bool = False) -> str:
+                     thread: bool = False) -> None:
     '''
     Download an episode to a directory an return its path.
     '''

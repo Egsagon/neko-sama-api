@@ -28,7 +28,7 @@ for episode in progress.Bar(cla, eps[7:]):
         try:
             name = '_'.join(episode.split('/episode/')[1].split('-')[10:])
             
-            print(cla, '### Fething', name)
+            print(cla, '### Fetching', name)
             
             prov, eurl = fetcher.get_episode(episode)
             links = fetcher.get_episode_links(eurl)
