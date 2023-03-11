@@ -24,7 +24,7 @@ def scrap(url: str, debug: bool = False) -> str:
         print('[ SCRPPER ] Starting...')
         
         # Setup to page
-        browser = core.firefox.launch(headless = not debug)
+        browser = core.firefox.launch(headless = not debug, args = ['--mute-audio'])
         page = browser.new_page(viewport = {'width': x, 'height': y})
         page.goto(url)
         page.wait_for_load_state()

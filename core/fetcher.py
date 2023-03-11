@@ -3,6 +3,7 @@ import requests
 import threading
 from time import sleep
 import core.scrapper as scrapper
+import core.progress as progress
 from requests_html import HTMLSession
 
 
@@ -104,80 +105,54 @@ def download_episode(links: list[str], path: str, session: requests.Session = No
     def dl(i, li) -> None:
         # Download one segment
 
-        name = link.split('/')[-1]
-        print(f'\r[ LAYER 4 ] Fetched segment \033[92m{name}\033[0m/{len(links)}', end = '')
-        raw = session.get(link).content
+        name = li.split('/')[-1]
+        # print(f'\r[ LAYER 4 ] Fetched segment \033[92m{name}\033[0m/{len(links)}', end = '')
+        res = session.get(li)
         
-        sum_.append( (i, raw) )
+        if not res.ok:
+            raise TimeoutError('Segment Error:', res.status_code, res.text)
+        
+        sum_.append( (i, res.content) )
     
     # Download segments through threads
-    for i, link in enumerate(links):
+    for i, link in progress.Bar('[ LAYER 4 ] Fetching segments', list(enumerate(links))):
+        
         if thread:
             threading.Thread(target = dl, args = [i, link]).start()
         
-        else: dl(i, link)
-
-    # Concat segments
+        else:
+            dl(i, link)
+    
+    # Check
     sleep(1)
+    print(f'\n[ LAYER 4 ] Checking segments...', end = '')
+    
+    keys = [el[0] for el in sum_]
+    expected = list(range(min(keys), max(keys) + 1))
+    
+    if expected == sorted(keys):
+        print(f'\n[ LAYER 4 ] No one missing.')
+    
+    else:
+        diff = set(expected) - set(keys)
+        print(f'Error\nMissing {len(diff)} elements:\n{diff}')
+        
+        exit()
+    
+    # Concat segments
     print(f'\n[ LAYER 4 ] Fetched all segments, building video...')
     merged = bytes()
     
     # Sort by index in case some threads were quickier than others
-    sum_.sort(key = lambda seg: seg[0])
     
-    for i, (_, seg) in enumerate(sum_):
+    for i, (_, seg) in progress.Bar('[ LAYER 4 ] Merging', list(enumerate(sum_))):
         merged += seg
-        print(f'\r[ LAYER 4 ] Concat \033[92m{i + 1}\033[0m/{len(sum_)}', end = '')
+        # print(f'\r[ LAYER 4 ] Concat \033[92m{i + 1}\033[0m/{len(sum_)}', end = '')
     
     # Write to file
     print(f'\n[ LAYER 4 ] Concat finished, writing to \033[92m{path}\033[0m...')
     
     with open(path, 'wb') as file: file.write(merged)
     print('[ LAYER 4 ] Done.')
-
-def download_ffmpeg(links: list[str], path: str, session: requests.Session = None,
-                     thread: bool = False) -> str:
-    '''
-    Download an episode to a directory an return its path.
-    Download each segments and concatenate using ffmpeg.
-    '''
-    
-    session = session or requests.Session()
-    
-    cache = './temp/'
-    
-    if not os.path.exists(cache): os.mkdir(cache)
-    
-    sum_ = open(cache + 'files.txt', 'a')
-    
-    def dl(i, li) -> None:
-        # Download one segment
-
-        name = link.split('/')[-1]
-        print(f'\r[ LAYER 4 ] Fetched segment \033[92m{name}\033[0m/{len(links)}', end = '')
-        raw = session.get(link).content
-        
-        open(cache + name, 'wb').write(raw)
-        sum_.write(f"file '{cache}{name}'")
-    
-    # Download segments through threads
-    for i, link in enumerate(links):
-        if thread:
-            threading.Thread(target = dl, args = [i, link]).start()
-        
-        else: dl(i, link)
-
-    # Concat segments
-    sleep(1)
-    print(f'\n[ LAYER 4 ] Fetched all segments, building video...')
-    
-    
-    
-    ...
-    
-
-# NOTE
-# download_episode  -> slow but to cache
-# downloadffmpeg    -> can use threads but use cache
 
 # EOF
