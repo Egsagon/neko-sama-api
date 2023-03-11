@@ -1,3 +1,9 @@
+'''
+    core.scrapper
+    
+    Web scrapper handler.
+'''
+
 from time import sleep
 from playwright.sync_api import sync_playwright
 
@@ -23,40 +29,48 @@ def scrap(url: str, debug: bool = False) -> str:
     with sync_playwright() as core:
         print('[ SCRPPER ] Starting...')
         
-        # Setup to page
-        browser = core.firefox.launch(headless = not debug, args = ['--mute-audio'])
-        page = browser.new_page(viewport = {'width': x, 'height': y})
+        # Setup
+        browser = core.firefox.launch_persistent_context(
+            headless = not debug,
+            args = [
+                '--mute-audio',
+                '--allow-legacy-extension-manifests '
+            ],
+            
+            ignore_default_args = [
+                '--disable-extensions',
+            ],
+            
+            user_data_dir = './chrome/',
+            
+            has_touch = True,
+            is_mobile = True,
+            devtools = True
+        )
+        
+        page = browser.new_page()
+        page.set_viewport_size({'width': x, 'height': y})
+        
         page.goto(url)
         page.wait_for_load_state()
         
-        # page.on('request', on_request)
-        # page.on('requestfinished', on_request)
+        # Play media
+        page.tap('html', position = {'x': x / 2, 'y': y / 2})
         
-        page.click('html', position = {'x': x / 2, 'y': y / 2})
-        
-        # Bypass ads
-        for i in range(5):
-            
-            print(f'\r[ SCRPPER ] Passing {i}...', end  = '')
-            page.click('html', position = {'x': x / 2, 'y': y / 2})
-            
-            # Close opened popup
-            with page.expect_popup() as info:
-                sleep(.5)
-                info.value.close()
-        
-        print('\n[ SCRPPER ] Waiting for url list...')
-        page.click('html', position = {'x': x / 2, 'y': y / 2})
+        print('[ SCRPPER ] Listening reqs...')
         
         # Wait for quality request (m method)
         with page.expect_request_finished(lambda req: '//fusevideo.net/m/' in req.response().url) as info:
             
-            print('[ SCRPPER ] Got response.')
-            
+            print('[ SCRPPER ] Grabbed request')
             res = info.value.response().text()
-            browser.close()
             
-            print('[ SCRPPER ] Finished.')
+            browser.close()
+            print('[ SCRPPER ] Exiting')
             return res
+
+if __name__ == '__main__':
+
+    print(scrap('https://fusevideo.net/e/5E9KrVj7gVN66E5'))
 
 # EOF

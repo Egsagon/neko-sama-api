@@ -1,3 +1,9 @@
+'''
+    core.fetcher
+    
+    Web scrapping functions.
+'''
+
 import os
 import requests
 import threading
@@ -55,7 +61,7 @@ def get_episode_links(url: str) -> list[str]:
     '''
     
     # Catch request
-    res = scrapper.scrap(url) # NOTE gen all
+    res = scrapper.scrap(url)
     
     # Parse providers
     qual = [l.split('\n')[:-1] for l in '\n'.join(res.split('\n')[1:]).split('#')[1:]]

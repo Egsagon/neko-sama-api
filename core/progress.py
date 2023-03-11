@@ -1,3 +1,9 @@
+'''
+    core.progress
+    
+    TQDM Progress bar wrapper utility.
+'''
+
 from tqdm import tqdm
 
 def Bar(desc: str, iter: list, **args) -> tqdm:
