@@ -21,19 +21,20 @@ open(out + 'syn.txt', 'w').write(syn)
 
 print(cla, 'Wrote syn')
 
-for episode in progress.Bar(cla, eps[7:]):
+for i, episode in progress.Bar(cla, list(enumerate(eps[8:]))):
     
     while 1:
     
         try:
             name = '_'.join(episode.split('/episode/')[1].split('-')[10:])
+            name = episode.replace('/', '_').replace('.', '_')
             
             print(cla, '### Fetching', name)
             
             prov, eurl = fetcher.get_episode(episode)
             links = fetcher.get_episode_links(eurl)
             
-            path = fetcher.download_episode(links, out + name + '.mp4')
+            path = fetcher.download_episode(links, out + str(i) + '.mp4')
             
             print(cla, f'### Fetched {name} ({path = })')
             
@@ -41,11 +42,10 @@ for episode in progress.Bar(cla, eps[7:]):
     
         except Exception as e:
         
-            print(cla, '\033[91mFailed to scrappe:', e.args, '\033[0m, retrying...')    
+            # print(cla, '\033[91mFailed to scrappe:', e.args, '\033[0m, retrying...')    
+            
+            raise e
         
-        except KeyboardInterrupt:
-            print(cla, 'User interruption.')
-
 
 print(cla, 'Finished process')
 # NOTE threads raises 429
