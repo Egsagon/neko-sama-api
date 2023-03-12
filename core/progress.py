@@ -1,6 +1,4 @@
 '''
-    core.progress
-    
     TQDM Progress bar wrapper utility.
 '''
 

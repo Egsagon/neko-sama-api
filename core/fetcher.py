@@ -1,10 +1,7 @@
 '''
-    core.fetcher
-    
     Web scrapping functions.
 '''
 
-import os
 import requests
 import threading
 from time import sleep
@@ -13,7 +10,7 @@ import core.progress as progress
 from requests_html import HTMLSession
 
 
-def get_anime(url: str, session: HTMLSession = None) -> tuple[str, list[str]]:
+def get_anime(url: str, session: HTMLSession = None, debug = True) -> tuple[str, list[str]]:
     '''
     Get the synopsis and a list of all the anime episode urls.
     '''
@@ -28,14 +25,15 @@ def get_anime(url: str, session: HTMLSession = None) -> tuple[str, list[str]]:
     episodes = list({e.absolute_links.pop() for e in soup.find('.js-list-episode-container *')
                 if e.absolute_links})
     
-    print(f'[ LAYER 1 ] Fetched syn (\033[93m{len(synopsis)}\033[0m chars) and \033[92m{len(episodes)}\033[0m urls.')
+    if debug:
+        print(f'[ LAYER 1 ] Fetched syn (\033[93m{len(synopsis)}\033[0m chars) and \033[92m{len(episodes)}\033[0m urls.')
     
     # Sort by name
     episodes.sort()
     
     return synopsis, episodes
 
-def get_episode(url: str, session: HTMLSession = None) -> tuple[str, str]:
+def get_episode(url: str, session: HTMLSession = None, debug = True) -> tuple[str, str]:
     '''
     Return the anime episode' provider and its stream url.
     '''
@@ -51,11 +49,12 @@ def get_episode(url: str, session: HTMLSession = None) -> tuple[str, str]:
     aurl = player['src']
     provider = aurl.split('//')[1].split('/')[0]
     
-    print(f'[ LAYER 2 ] Found provider \033[93m{provider}\033[0m')
+    if debug:
+        print(f'[ LAYER 2 ] Found provider \033[93m{provider}\033[0m')
     
     return provider, aurl
 
-def get_episode_links(url: str) -> list[str]:
+def get_episode_links(url: str, debug = True) -> list[str]:
     '''
     Fetch all episode links
     '''
@@ -69,12 +68,14 @@ def get_episode_links(url: str) -> list[str]:
     
     keys = list(quals.keys())
     
-    print(f'[ LAYER 3 ] Got \033[92m{len(keys)}\033[0m qualities: \033[93m{", or ".join(map(str, keys))}\033[0m')
+    if debug:
+        print(f'[ LAYER 3 ] Got \033[92m{len(keys)}\033[0m qualities: \033[93m{", or ".join(map(str, keys))}\033[0m')
     
     # Pick best quality (TODO choose)
     best = quals[max(keys)]
     
-    print(f'[ LAYER 3 ] Picking \033[93m{max(keys)}\033[0m quality')
+    if debug:
+        print(f'[ LAYER 3 ] Picking \033[93m{max(keys)}\033[0m quality')
     
     # Fetch segments
     headers = {
@@ -95,12 +96,13 @@ def get_episode_links(url: str) -> list[str]:
     
     links =  [l for l in raw.split('\n') if l.startswith('https://')]
     
-    print(f'[ LAYER 3 ] Got \033[92m{len(links)}\033[0m links')
+    if debug:
+        print(f'[ LAYER 3 ] Got \033[92m{len(links)}\033[0m links')
     
     return links
 
 def download_episode(links: list[str], path: str, session: requests.Session = None,
-                     thread: bool = False) -> None:
+                     thread: bool = False, debug = True) -> None:
     '''
     Download an episode to a directory an return its path.
     '''
@@ -131,22 +133,27 @@ def download_episode(links: list[str], path: str, session: requests.Session = No
     
     # Check
     sleep(1)
-    print(f'\n[ LAYER 4 ] Checking segments...', end = '')
+    if debug:
+        print(f'\n[ LAYER 4 ] Checking segments...', end = '')
     
     keys = [el[0] for el in sum_]
     expected = list(range(min(keys), max(keys) + 1))
     
     if expected == sorted(keys):
-        print(f'\n[ LAYER 4 ] No one missing.')
+        if debug:
+            print(f'\n[ LAYER 4 ] No one missing.')
     
     else:
         diff = set(expected) - set(keys)
-        print(f'Error\nMissing {len(diff)} elements:\n{diff}')
+        
+        if debug:
+            print(f'Error\nMissing {len(diff)} elements:\n{diff}')
         
         exit()
     
     # Concat segments
-    print(f'\n[ LAYER 4 ] Fetched all segments, building video...')
+    if debug:
+        print(f'\n[ LAYER 4 ] Fetched all segments, building video...')
     merged = bytes()
     
     # Sort by index in case some threads were quickier than others
@@ -156,9 +163,11 @@ def download_episode(links: list[str], path: str, session: requests.Session = No
         # print(f'\r[ LAYER 4 ] Concat \033[92m{i + 1}\033[0m/{len(sum_)}', end = '')
     
     # Write to file
-    print(f'\n[ LAYER 4 ] Concat finished, writing to \033[92m{path}\033[0m...')
+    if debug:
+        print(f'\n[ LAYER 4 ] Concat finished, writing to \033[92m{path}\033[0m...')
     
     with open(path, 'wb') as file: file.write(merged)
-    print('[ LAYER 4 ] Done.')
+    if debug:
+        print('[ LAYER 4 ] Done.')
 
 # EOF
