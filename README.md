@@ -3,6 +3,11 @@
 Simple utilities to download animes from NS.
 
 # Usage
+```sh
+python3 run.py
+```
+
+Or
 
 ```py
 
