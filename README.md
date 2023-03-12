@@ -28,6 +28,8 @@ scrapper.scrap( url: str ) -> str
 
 ```
 
+Exemple script made with `gum` in `run.py`.
+
 Exemple downloader can be found in `main.py`.
 
 <details>
