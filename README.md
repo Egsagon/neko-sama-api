@@ -30,7 +30,7 @@ scrapper.scrap( url: str ) -> str
 
 Exemple script made with `gum` in `run.py`.
 
-Exemple downloader can be found in `main.py`.
+Exemple downloader can be found in `test.py`.
 
 <details>
   <summary>View code</summary>
