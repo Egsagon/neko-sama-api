@@ -1,4 +1,4 @@
-## :warning: This branch is outdated as it rely on too brutal and not stable web scrapping It also has too few features to be considered as an API. Consider using the version from the newest version instead.
+## :warning: This branch is outdated as it rely on too brutal and not stable web scrapping. It also has too few features to be considered as an API. Consider using the version from the newest version instead.
 
 # NS Downloader
 
